@@ -17,7 +17,6 @@ body {
     image-rendering: crisp-edges;
 }
 
-/* Pixelated background pattern with blur */
 body::before {
     content: '';
     position: fixed;
@@ -45,7 +44,6 @@ body::after {
     z-index: 0;
 }
 
-/* Header */
 header {
     display: flex;
     justify-content: space-between;
@@ -119,7 +117,6 @@ nav a:hover {
     box-shadow: none;
 }
 
-/* Main Container */
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -129,7 +126,6 @@ nav a:hover {
     backdrop-filter: blur(0.5px);
 }
 
-/* Project Cards */
 .main-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -251,7 +247,6 @@ nav a:hover {
     margin-top: auto;
 }
 
-/* Small Cards */
 .small-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -292,7 +287,6 @@ nav a:hover {
     margin-bottom: 10px;
 }
 
-/* Portfolio Section */
 .portfolio {
     background: rgba(3, 7, 30, 0.8);
     border: 4px solid #6A040F;
@@ -362,7 +356,6 @@ nav a:hover {
     box-shadow: 0 5px 0 #9D0208;
 }
 
-/* Footer */
 footer {
     background: #03071E;
     border-top: 4px solid #6A040F;
@@ -415,7 +408,6 @@ footer {
     margin-top: 20px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     nav {
         display: none;

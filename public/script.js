@@ -1,4 +1,3 @@
-        // Draggable cards functionality
         document.querySelectorAll('.card, .small-card').forEach(card => {
             let isDragging = false;
             let currentX;
@@ -51,7 +50,6 @@
             }
         });
         
-        // Interactive hover sound effect (visual feedback)
         document.querySelectorAll('button, a').forEach(element => {
             element.addEventListener('mouseenter', () => {
                 element.style.filter = 'brightness(1.2)';
