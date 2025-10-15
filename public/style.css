@@ -17,7 +17,7 @@ body {
     image-rendering: crisp-edges;
 }
 
-/* Pixelated background pattern */
+/* Pixelated background pattern with blur */
 body::before {
     content: '';
     position: fixed;
@@ -32,6 +32,19 @@ body::before {
     z-index: 1;
 }
 
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+    pointer-events: none;
+    z-index: 0;
+}
+
 /* Header */
 header {
     display: flex;
@@ -43,10 +56,11 @@ header {
     position: relative;
     z-index: 100;
     box-shadow: 0 4px 0 #370617;
+    backdrop-filter: blur(0.5px);
 }
 
 .logo {
-    font-size: 24px;
+    font-size: 18px;
     color: #FFBA08;
     text-shadow: 3px 3px 0 #DC2F02;
     animation: glitch 3s infinite;
@@ -112,6 +126,7 @@ nav a:hover {
     padding: 60px 20px;
     position: relative;
     z-index: 10;
+    backdrop-filter: blur(0.5px);
 }
 
 /* Project Cards */
@@ -125,22 +140,66 @@ nav a:hover {
 .card {
     background: linear-gradient(135deg, #6A040F 0%, #370617 100%);
     border: 4px solid #E85D04;
-    padding: 30px;
     position: relative;
-    cursor: pointer;
+    cursor: grab;
     transition: all 0.3s;
     box-shadow: 8px 8px 0 rgba(157, 2, 8, 0.5);
-    min-height: 200px;
+    min-height: 280px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.card.dragging {
+    cursor: grabbing;
+    transition: none !important;
+    z-index: 1000;
 }
 
 .card:hover {
-    transform: translate(-4px, -4px);
     box-shadow: 12px 12px 0 rgba(157, 2, 8, 0.7);
     border-color: #FFBA08;
     background: linear-gradient(135deg, #9D0208 0%, #6A040F 100%);
+}
+
+.card-image {
+    height: 140px;
+    background: linear-gradient(45deg, #6A040F, #E85D04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: rgba(255,186,8,0.2);
+    border-bottom: 3px solid #370617;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(3, 7, 30, 0.1) 2px,
+        rgba(3, 7, 30, 0.1) 4px
+    );
+}
+
+.card-body {
+    padding: 25px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .card h2 {
@@ -157,6 +216,7 @@ nav a:hover {
     padding: 5px 10px;
     font-size: 8px;
     animation: pulse 2s infinite;
+    z-index: 10;
 }
 
 .badge.beta {
@@ -181,31 +241,14 @@ nav a:hover {
     font-size: 8px;
     line-height: 1.8;
     margin: 20px 0;
+    flex-grow: 1;
 }
 
 .card-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 20px;
-}
-
-.view-btn {
-    padding: 8px 16px;
-    background: #E85D04;
-    color: #FFBA08;
-    border: none;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 3px 3px 0 #370617;
-}
-
-.view-btn:hover {
-    background: #DC2F02;
-    transform: translate(1px, 1px);
-    box-shadow: 2px 2px 0 #370617;
+    margin-top: auto;
 }
 
 /* Small Cards */
@@ -221,14 +264,24 @@ nav a:hover {
     border: 3px solid #9D0208;
     padding: 20px;
     text-align: center;
-    cursor: pointer;
+    cursor: grab;
     transition: all 0.3s;
     position: relative;
     box-shadow: 4px 4px 0 rgba(55, 6, 23, 0.5);
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.small-card.dragging {
+    cursor: grabbing;
+    transition: none !important;
+    z-index: 1000;
 }
 
 .small-card:hover {
-    transform: scale(1.05) rotate(-2deg);
+    transform: scale(1.05);
     border-color: #FAA307;
     box-shadow: 6px 6px 0 rgba(55, 6, 23, 0.7);
 }
@@ -254,6 +307,39 @@ nav a:hover {
     margin-bottom: 30px;
     text-align: center;
     text-shadow: 3px 3px 0 #DC2F02;
+}
+
+.portfolio-content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.studio-image {
+    background: linear-gradient(135deg, #370617, #6A040F);
+    height: 200px;
+    border: 3px solid #E85D04;
+    margin: 30px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.studio-image::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255, 186, 8, 0.05) 10px,
+        rgba(255, 186, 8, 0.05) 20px
+    );
 }
 
 .portfolio-grid {
@@ -284,6 +370,7 @@ footer {
     text-align: center;
     position: relative;
     z-index: 10;
+    backdrop-filter: blur(0.5px);
 }
 
 .footer-links {
@@ -326,21 +413,6 @@ footer {
     color: #9D0208;
     font-size: 8px;
     margin-top: 20px;
-}
-
-/* Pixel art decorations */
-.pixel-decoration {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background: #FAA307;
-    opacity: 0.3;
-    animation: float 6s infinite ease-in-out;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
 }
 
 /* Responsive */

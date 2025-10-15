@@ -1,78 +1,62 @@
-// Interactive card animations
-function animateCard(card) {
-    card.style.animation = 'shake 0.5s';
-    setTimeout(() => {
-        card.style.animation = '';
-    }, 500);
-}
+        // Draggable cards functionality
+        document.querySelectorAll('.card, .small-card').forEach(card => {
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
 
-function animateSmallCard(card) {
-    card.style.animation = 'spin 0.5s';
-    setTimeout(() => {
-        card.style.animation = '';
-    }, 500);
-}
+            card.addEventListener('mousedown', dragStart);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', dragEnd);
 
-// Add shake animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-10px) rotate(-2deg); }
-        75% { transform: translateX(10px) rotate(2deg); }
-    }
-    
-    @keyframes spin {
-        0% { transform: scale(1) rotate(0deg); }
-        50% { transform: scale(1.1) rotate(180deg); }
-        100% { transform: scale(1) rotate(360deg); }
-    }
-`;
-document.head.appendChild(style);
+            function dragStart(e) {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+                
+                if (e.target === card || card.contains(e.target)) {
+                    isDragging = true;
+                    card.classList.add('dragging');
+                }
+            }
 
-// Add floating pixel decorations
-function createPixelDecoration() {
-    const colors = ['#FFBA08', '#FAA307', '#F48C06', '#E85D04', '#DC2F02'];
-    const decoration = document.createElement('div');
-    decoration.className = 'pixel-decoration';
-    decoration.style.left = Math.random() * window.innerWidth + 'px';
-    decoration.style.top = Math.random() * window.innerHeight + 'px';
-    decoration.style.background = colors[Math.floor(Math.random() * colors.length)];
-    decoration.style.animationDelay = Math.random() * 6 + 's';
-    document.body.appendChild(decoration);
-    
-    setTimeout(() => {
-        decoration.remove();
-    }, 12000);
-}
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                    xOffset = currentX;
+                    yOffset = currentY;
+                    
+                    card.style.transform = `translate(${currentX}px, ${currentY}px)`;
+                }
+            }
 
-// Create decorations periodically
-setInterval(createPixelDecoration, 3000);
-
-// Initial decorations
-for(let i = 0; i < 5; i++) {
-    setTimeout(createPixelDecoration, i * 500);
-}
-
-// Glitch effect on scroll
-let lastScroll = 0;
-window.addEventListener('scroll', () => {
-    const currentScroll = window.pageYOffset;
-    if (Math.abs(currentScroll - lastScroll) > 50) {
-        document.body.style.filter = 'hue-rotate(10deg)';
-        setTimeout(() => {
-            document.body.style.filter = 'none';
-        }, 100);
-        lastScroll = currentScroll;
-    }
-});
-
-// Interactive hover sound effect (visual feedback)
-document.querySelectorAll('.card, .small-card, button, a').forEach(element => {
-    element.addEventListener('mouseenter', () => {
-        element.style.filter = 'brightness(1.2)';
-        setTimeout(() => {
-            element.style.filter = '';
-        }, 100);
-    });
-});
+            function dragEnd() {
+                if (isDragging) {
+                    card.classList.remove('dragging');
+                    card.style.transition = 'transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                    card.style.transform = 'translate(0, 0)';
+                    
+                    setTimeout(() => {
+                        card.style.transition = '';
+                    }, 500);
+                    
+                    xOffset = 0;
+                    yOffset = 0;
+                    isDragging = false;
+                }
+            }
+        });
+        
+        // Interactive hover sound effect (visual feedback)
+        document.querySelectorAll('button, a').forEach(element => {
+            element.addEventListener('mouseenter', () => {
+                element.style.filter = 'brightness(1.2)';
+                setTimeout(() => {
+                    element.style.filter = '';
+                }, 100);
+            });
+        });
