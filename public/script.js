@@ -1,3 +1,40 @@
+// Check authentication status on page load
+async function checkAuthStatus() {
+    try {
+        const response = await fetch('/api/auth/status');
+        const data = await response.json();
+        
+        const loginBtn = document.getElementById('login-btn');
+        
+        if (data.authenticated) {
+            // User is logged in
+            loginBtn.textContent = data.username.toUpperCase();
+            loginBtn.style.background = '#FAA307';
+            loginBtn.style.cursor = 'default';
+            
+            // Add logout on click
+            loginBtn.onclick = async () => {
+                if (confirm('LOGOUT?')) {
+                    await fetch('/api/auth/logout', { method: 'POST' });
+                    window.location.reload();
+                }
+            };
+        } else {
+            // User is not logged in
+            loginBtn.textContent = 'LOGIN';
+            loginBtn.onclick = () => {
+                window.location.href = '/login';
+            };
+        }
+    } catch (error) {
+        console.error('Auth check failed:', error);
+    }
+}
+
+// Run on page load
+checkAuthStatus();
+
+// Existing drag functionality
 document.querySelectorAll('.card, .small-card').forEach(card => {
     let isDragging = false;
     let currentX;
@@ -50,6 +87,7 @@ document.querySelectorAll('.card, .small-card').forEach(card => {
     }
 });
 
+// Existing button effects
 document.querySelectorAll('button, a').forEach(element => {
     element.addEventListener('mouseenter', () => {
         element.style.filter = 'brightness(1.2)';
@@ -58,11 +96,3 @@ document.querySelectorAll('button, a').forEach(element => {
         }, 100);
     });
 });
-
-
-const loginBtn = document.getElementById('login-btn');
-
-loginBtn.addEventListener('click', () => {
-    console.log("click");
-    window.location.href = '/login';
-})
