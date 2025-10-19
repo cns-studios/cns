@@ -1,17 +1,13 @@
-// Smooth scroll to sections
 document.querySelectorAll('.nav-item').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
         
-        // Remove active class from all
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
         });
         
-        // Add active class to clicked
         link.classList.add('active');
         
-        // Scroll to section
         const targetId = link.getAttribute('href').substring(1);
         const targetSection = document.getElementById(targetId);
         
@@ -21,7 +17,6 @@ document.querySelectorAll('.nav-item').forEach(link => {
     });
 });
 
-// Update active nav on scroll
 let ticking = false;
 
 function updateActiveNav() {
@@ -58,7 +53,6 @@ window.addEventListener('scroll', () => {
     }
 });
 
-// Copy code blocks on click
 document.querySelectorAll('.code-block').forEach(block => {
     block.style.cursor = 'pointer';
     block.title = 'Click to copy';
