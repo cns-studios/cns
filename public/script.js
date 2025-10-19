@@ -1,4 +1,3 @@
-// Check authentication status on page load
 async function checkAuthStatus() {
     try {
         const response = await fetch('/api/auth/status');
@@ -7,12 +6,10 @@ async function checkAuthStatus() {
         const loginBtn = document.getElementById('login-btn');
         
         if (data.authenticated) {
-            // User is logged in
             loginBtn.textContent = data.username.toUpperCase();
             loginBtn.style.background = '#FAA307';
             loginBtn.style.cursor = 'default';
             
-            // Add logout on click
             loginBtn.onclick = async () => {
                 if (confirm('LOGOUT?')) {
                     await fetch('/api/auth/logout', { method: 'POST' });
@@ -20,7 +17,6 @@ async function checkAuthStatus() {
                 }
             };
         } else {
-            // User is not logged in
             loginBtn.textContent = 'LOGIN';
             loginBtn.onclick = () => {
                 window.location.href = '/login';
@@ -31,10 +27,8 @@ async function checkAuthStatus() {
     }
 }
 
-// Run on page load
 checkAuthStatus();
 
-// Existing drag functionality
 document.querySelectorAll('.card, .small-card').forEach(card => {
     let isDragging = false;
     let currentX;
@@ -87,7 +81,6 @@ document.querySelectorAll('.card, .small-card').forEach(card => {
     }
 });
 
-// Existing button effects
 document.querySelectorAll('button, a').forEach(element => {
     element.addEventListener('mouseenter', () => {
         element.style.filter = 'brightness(1.2)';

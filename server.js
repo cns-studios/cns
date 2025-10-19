@@ -9,19 +9,21 @@ const { initDatabase, userOps } = require('./database');
 
 const app = express();
 const port = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET;
-const COOKIE_MAX_AGE = parseInt(process.env.COOKIE_MAX_AGE) || 604800000; // 7 days
+
+const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-key-CHANGE-THIS';
+if (JWT_SECRET === 'default-secret-key-CHANGE-THIS') {
+    console.warn('WARNING: Using default JWT secret. Create a .env file with JWT_SECRET!');
+}
+
+const COOKIE_MAX_AGE = parseInt(process.env.COOKIE_MAX_AGE) || 604800000;
 const SALT_ROUNDS = 10;
 
-// Initialize database
 initDatabase();
 
-// Middleware
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Auth middleware - checks cookie
 const authenticateToken = (req, res, next) => {
     const token = req.cookies.auth_token;
     
@@ -33,7 +35,7 @@ const authenticateToken = (req, res, next) => {
     jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) {
             req.user = null;
-            res.clearCookie('auth_token');
+            res.clearCookie('auth_token')
         } else {
             req.user = user;
         }
@@ -41,7 +43,6 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// Validation
 const validateSignup = [
     body('username')
         .trim()
@@ -59,9 +60,7 @@ const validateLogin = [
     body('pin').matches(/^\d{4}$/).withMessage('PIN must be 4 digits')
 ];
 
-// AUTH ROUTES
 
-// Signup
 app.post('/api/auth/signup', validateSignup, async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -96,7 +95,6 @@ app.post('/api/auth/signup', validateSignup, async (req, res) => {
     }
 });
 
-// Login
 app.post('/api/auth/login', validateLogin, async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -133,10 +131,9 @@ app.post('/api/auth/login', validateLogin, async (req, res) => {
             { expiresIn: '7d' }
         );
         
-        // Set cookie - secure in production
         const cookieOptions = {
             httpOnly: true,
-            maxAge: rememberMe ? COOKIE_MAX_AGE : 3600000, // 7 days or 1 hour
+            maxAge: rememberMe ? COOKIE_MAX_AGE : 3600000,
             sameSite: 'strict',
             secure: process.env.NODE_ENV === 'production'
         };
@@ -157,13 +154,11 @@ app.post('/api/auth/login', validateLogin, async (req, res) => {
     }
 });
 
-// Logout
 app.post('/api/auth/logout', (req, res) => {
     res.clearCookie('auth_token');
     res.json({ message: 'Logged out successfully' });
 });
 
-// Check auth status
 app.get('/api/auth/status', authenticateToken, (req, res) => {
     if (req.user) {
         res.json({ 
@@ -176,7 +171,6 @@ app.get('/api/auth/status', authenticateToken, (req, res) => {
     }
 });
 
-// Get user profile (protected)
 app.get('/api/user/profile', authenticateToken, (req, res) => {
     if (!req.user) {
         return res.status(401).json({ message: 'Not authenticated' });
@@ -197,7 +191,6 @@ app.get('/api/user/profile', authenticateToken, (req, res) => {
     }
 });
 
-// EXISTING ROUTES
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -218,19 +211,10 @@ app.get('/signup', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'signup.html'));
 });
 
-// 404
 app.use((req, res) => {
     res.status(404).send('File not found');
 });
 
 app.listen(port, () => {
-    console.log(`
-╔════════════════════════════════════════╗
-║        CNS STUDIOS SERVER              ║
-║                                        ║
-║  Running on http://localhost:${port}    ║
-║  Auth system: ACTIVE                   ║
-║                                        ║
-╚════════════════════════════════════════╝
-    `);
+    console.log(`Running on http://localhost:${port}`); 
 });
