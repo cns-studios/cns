@@ -1,0 +1,2 @@
+Change Emojis to Icons
+Remove Tos, Privacy Policy, Support and Docs placeholders and replace with actual content
