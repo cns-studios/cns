@@ -195,20 +195,36 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/github', (req, res) => {
-    res.redirect("https://github.com/cns-studios");
-});
-
-app.get('/docs', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'docs.html'));
-});
-
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 app.get('/signup', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'signup.html'));
+});
+
+app.get('/docs', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'docs.html'));
+});
+
+app.get('/contact', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'contact.html'));
+});
+
+app.get('/policy', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'policy.html'));
+});
+
+app.get('/tos', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'tos.html'));
+});
+
+app.get('/support', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'support.html'));
+});
+
+app.get('/github', (req, res) => {
+    res.redirect('https://github.com/cns-studios');
 });
 
 app.use((req, res) => {

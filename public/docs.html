@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - CNS Studios</title>
+    <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+    <header>
+        <div class="logo">CNS Studios</div>
+        <nav>
+            <a href="/github">Github</a>
+            <a href="/contact">Contact</a>
+            <a href="/docs">Docs</a>
+            <a href="/support">Support</a>
+        </nav>
+        <a href="/" class="back-home">← HOME</a>
+    </header>
+
+    <div class="docs-container">
+        <aside class="docs-sidebar">
+            <div class="sidebar-header">
+                <h2>CONTENTS</h2>
+            </div>
+            <nav class="docs-nav">
+                <a href="#tldr" class="nav-item active">TL;DR</a>
+                <a href="#get-started" class="nav-item">Get Started</a>
+                <a href="#installation" class="nav-item">Installation</a>
+                <a href="#authentication" class="nav-item">Authentication</a>
+                <a href="#api-reference" class="nav-item">API Reference</a>
+                <a href="#database" class="nav-item">Database</a>
+                <a href="#deployment" class="nav-item">Deployment</a>
+                <a href="#examples" class="nav-item">Examples</a>
+                <a href="#troubleshooting" class="nav-item">Troubleshooting</a>
+                <a href="#changelog" class="nav-item">Changelog</a>
+            </nav>
+        </aside>
+
+        <main class="docs-content">
+            <section id="tldr" class="doc-section">
+                <h1 class="section-title">TL;DR - QUICK START</h1>
+                <div class="tldr-box">
+                    <div class="tldr-item">
+                        <span class="step-number">01</span>
+                        <div>
+                            <h3>CLONE REPOSITORY</h3>
+                            <code>git clone https://github.com/cns-studios/project.git</code>
+                        </div>
+                    </div>
+                    <div class="tldr-item">
+                        <span class="step-number">02</span>
+                        <div>
+                            <h3>INSTALL DEPENDENCIES</h3>
+                            <code>npm install</code>
+                        </div>
+                    </div>
+                    <div class="tldr-item">
+                        <span class="step-number">03</span>
+                        <div>
+                            <h3>CONFIGURE ENVIRONMENT</h3>
+                            <code>cp .env.example .env</code>
+                        </div>
+                    </div>
+                    <div class="tldr-item">
+                        <span class="step-number">04</span>
+                        <div>
+                            <h3>START SERVER</h3>
+                            <code>npm start</code>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="get-started" class="doc-section">
+                <h1 class="section-title">GET STARTED</h1>
+                <p class="doc-text">
+                    Welcome to CNS Studios documentation. This guide will help you integrate our 
+                    systems into your projects. Our platform provides enterprise-grade solutions 
+                    with retro-inspired interfaces.
+                </p>
+                <div class="info-box">
+                    <h3>PREREQUISITES</h3>
+                    <ul>
+                        <li>Node.js 16.x or higher</li>
+                        <li>npm or yarn package manager</li>
+                        <li>Basic knowledge of JavaScript/Node.js</li>
+                        <li>Terminal/command line experience</li>
+                    </ul>
+                </div>
+                <div class="warning-box">
+                    <h3>⚠ IMPORTANT</h3>
+                    <p>Make sure to configure your .env file before starting the server. 
+                    Missing environment variables will cause authentication to fail.</p>
+                </div>
+            </section>
+
+            <section id="installation" class="doc-section">
+                <h1 class="section-title">INSTALLATION</h1>
+                <h2 class="subsection-title">STEP 1: CLONE PROJECT</h2>
+                <div class="code-block">
+                    <pre><code>git clone https://github.com/cns-studios/project.git
+cd project</code></pre>
+                </div>
+
+                <h2 class="subsection-title">STEP 2: INSTALL PACKAGES</h2>
+                <div class="code-block">
+                    <pre><code>npm install</code></pre>
+                </div>
+                <p class="doc-text">This will install all required dependencies including:</p>
+                <ul>
+                    <li>Express.js - Web framework</li>
+                    <li>Better-SQLite3 - Database engine</li>
+                    <li>bcrypt - Password hashing</li>
+                    <li>jsonwebtoken - Authentication tokens</li>
+                </ul>
+
+                <h2 class="subsection-title">STEP 3: ENVIRONMENT SETUP</h2>
+                <div class="code-block">
+                    <pre><code># Create .env file
+PORT=3000
+JWT_SECRET=your-secret-key-here
+COOKIE_MAX_AGE=604800000
+NODE_ENV=development</code></pre>
+                </div>
+            </section>
+
+            <section id="authentication" class="doc-section">
+                <h1 class="section-title">AUTHENTICATION</h1>
+                <p class="doc-text">
+                    CNS Studios uses cookie-based JWT authentication with 4-digit PIN security.
+                </p>
+
+                <h2 class="subsection-title">SIGNUP ENDPOINT</h2>
+                <div class="code-block">
+                    <pre><code>POST /api/auth/signup
+Content-Type: application/json
+
+{
+  "username": "player1",
+  "pin": "1234"
+}</code></pre>
+                </div>
+
+                <h2 class="subsection-title">LOGIN ENDPOINT</h2>
+                <div class="code-block">
+                    <pre><code>POST /api/auth/login
+Content-Type: application/json
+
+{
+  "username": "player1",
+  "pin": "1234",
+  "rememberMe": true
+}</code></pre>
+                </div>
+
+                <div class="info-box">
+                    <h3>COOKIE DURATION</h3>
+                    <p>rememberMe: true = 7 days<br>
+                    rememberMe: false = 1 hour</p>
+                </div>
+            </section>
+
+            <section id="api-reference" class="doc-section">
+                <h1 class="section-title">API REFERENCE</h1>
+                
+                <div class="api-endpoint">
+                    <div class="endpoint-header">
+                        <span class="http-method post">POST</span>
+                        <span class="endpoint-path">/api/auth/signup</span>
+                    </div>
+                    <p class="doc-text">Create a new user account</p>
+                    <div class="code-block">
+                        <pre><code>// Request
+{
+  "username": "string (3-20 chars)",
+  "pin": "string (4 digits)"
+}
+
+// Response (201)
+{
+  "message": "Account created successfully",
+  "username": "player1"
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="api-endpoint">
+                    <div class="endpoint-header">
+                        <span class="http-method post">POST</span>
+                        <span class="endpoint-path">/api/auth/login</span>
+                    </div>
+                    <p class="doc-text">Authenticate user and receive cookie</p>
+                    <div class="code-block">
+                        <pre><code>// Request
+{
+  "username": "string",
+  "pin": "string (4 digits)",
+  "rememberMe": "boolean"
+}
+
+// Response (200)
+{
+  "message": "Login successful",
+  "username": "player1",
+  "userId": 1
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="api-endpoint">
+                    <div class="endpoint-header">
+                        <span class="http-method get">GET</span>
+                        <span class="endpoint-path">/api/auth/status</span>
+                    </div>
+                    <p class="doc-text">Check authentication status</p>
+                    <div class="code-block">
+                        <pre><code>// Response (200)
+{
+  "authenticated": true,
+  "username": "player1",
+  "userId": 1
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="api-endpoint">
+                    <div class="endpoint-header">
+                        <span class="http-method post">POST</span>
+                        <span class="endpoint-path">/api/auth/logout</span>
+                    </div>
+                    <p class="doc-text">Clear authentication cookie</p>
+                </div>
+            </section>
+
+            <section id="database" class="doc-section">
+                <h1 class="section-title">DATABASE</h1>
+                <p class="doc-text">
+                    CNS Studios uses SQLite3 with a JSON column for flexible user data storage.
+                </p>
+
+                <h2 class="subsection-title">USER TABLE SCHEMA</h2>
+                <div class="code-block">
+                    <pre><code>CREATE TABLE users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE NOT NULL,
+  pin_hash TEXT NOT NULL,
+  user_data TEXT DEFAULT '{}',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  last_login DATETIME,
+  is_active INTEGER DEFAULT 1
+);</code></pre>
+                </div>
+
+                <h2 class="subsection-title">USER DATA JSON STRUCTURE</h2>
+                <div class="code-block">
+                    <pre><code>{
+  "profile": {
+    "displayName": "Player Name",
+    "avatar": null,
+    "level": 1,
+    "joinDate": "2024-01-01T00:00:00.000Z"
+  },
+  "projects": {
+    "favorites": [],
+    "accessed": []
+  },
+  "settings": {
+    "theme": "retro-dark",
+    "notifications": true
+  },
+  "activity": {
+    "lastActive": "2024-01-01T00:00:00.000Z",
+    "totalLogins": 0
+  }
+}</code></pre>
+                </div>
+            </section>
+
+            <section id="deployment" class="doc-section">
+                <h1 class="section-title">DEPLOYMENT</h1>
+                
+                <h2 class="subsection-title">PRODUCTION CHECKLIST</h2>
+                <div class="warning-box">
+                    <ul>
+                        <li>✓ Change JWT_SECRET to random string</li>
+                        <li>✓ Set NODE_ENV=production</li>
+                        <li>✓ Enable HTTPS for secure cookies</li>
+                        <li>✓ Configure proper CORS settings</li>
+                        <li>✓ Set up database backups</li>
+                        <li>✓ Configure rate limiting</li>
+                    </ul>
+                </div>
+
+                <h2 class="subsection-title">ENVIRONMENT VARIABLES</h2>
+                <div class="code-block">
+                    <pre><code>PORT=3000
+JWT_SECRET=RANDOM_64_CHAR_STRING
+COOKIE_MAX_AGE=604800000
+NODE_ENV=production</code></pre>
+                </div>
+            </section>
+
+            <section id="examples" class="doc-section">
+                <h1 class="section-title">EXAMPLES</h1>
+                
+                <h2 class="subsection-title">CLIENT-SIDE LOGIN</h2>
+                <div class="code-block">
+                    <pre><code>async function login(username, pin) {
+  const response = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, pin, rememberMe: true })
+  });
+  
+  const data = await response.json();
+  
+  if (response.ok) {
+    console.log('Logged in:', data.username);
+    window.location.href = '/';
+  } else {
+    console.error('Login failed:', data.message);
+  }
+}</code></pre>
+                </div>
+
+                <h2 class="subsection-title">CHECK AUTH STATUS</h2>
+                <div class="code-block">
+                    <pre><code>async function checkAuth() {
+  const response = await fetch('/api/auth/status');
+  const data = await response.json();
+  
+  if (data.authenticated) {
+    console.log('User:', data.username);
+  } else {
+    console.log('Not authenticated');
+  }
+}</code></pre>
+                </div>
+            </section>
+
+            <section id="troubleshooting" class="doc-section">
+                <h1 class="section-title">TROUBLESHOOTING</h1>
+                
+                <div class="issue-box">
+                    <h3>ERROR: secretOrPrivateKey must have a value</h3>
+                    <p><strong>Solution:</strong> Create .env file with JWT_SECRET variable</p>
+                </div>
+
+                <div class="issue-box">
+                    <h3>ERROR: Cannot GET /login</h3>
+                    <p><strong>Solution:</strong> Ensure login.html exists in public/ directory</p>
+                </div>
+
+                <div class="issue-box">
+                    <h3>ERROR: Module not found</h3>
+                    <p><strong>Solution:</strong> Run npm install to install dependencies</p>
+                </div>
+
+                <div class="issue-box">
+                    <h3>Cookies not persisting</h3>
+                    <p><strong>Solution:</strong> Check that you're using http://localhost, not file://</p>
+                </div>
+            </section>
+
+            <section id="changelog" class="doc-section">
+                <h1 class="section-title">CHANGELOG</h1>
+                
+                <div class="changelog-entry">
+                    <h3>v1.0.0 - 2024-01-15</h3>
+                    <ul>
+                        <li>✓ Initial release</li>
+                        <li>✓ Cookie-based authentication</li>
+                        <li>✓ SQLite database integration</li>
+                        <li>✓ User data JSON storage</li>
+                    </ul>
+                </div>
+
+                <div class="changelog-entry">
+                    <h3>v0.9.0 - 2024-01-10</h3>
+                    <ul>
+                        <li>✓ Beta release</li>
+                        <li>✓ Core authentication system</li>
+                        <li>✓ Basic API endpoints</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer>
+        <div class="footer-links">
+            <a href="/policy">Privacy Policy</a>
+            <a href="/tos">Terms of Service</a>
+            <a href="/contact">Contact</a>
+            <a href="/docs">Documentation</a>
+            <a href="/support">Support</a>
+        </div>
+        <div class="copyright">
+            © 2025 CNS STUDIOS
+        </div>
+    </footer>
+
+    <script src="/src/docs.js"></script>
+</body>
+</html>
