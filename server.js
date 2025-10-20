@@ -199,6 +199,10 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
+app.get('/discord', (req, res) => {
+    res.redirect('https://discord.gg/akYFtsSH3j');
+});
+
 app.get('/signup', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'signup.html'));
 });
