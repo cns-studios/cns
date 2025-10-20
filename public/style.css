@@ -8,7 +8,6 @@
 }
 
 body {
-    font-family: 'Press Start 2P', cursive;
     background: linear-gradient(180deg, #03071E 0%, #370617 100%);
     color: #FFBA08;
     min-height: 100vh;
@@ -16,6 +15,12 @@ body {
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
+}
+
+body {
+  font-family: "Jersey 20 Charted", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 body::before {
