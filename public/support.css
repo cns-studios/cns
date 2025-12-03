@@ -130,6 +130,12 @@ nav a:hover {
 .card-icon {
     font-size: 48px;
     margin-bottom: 20px;
+    color: #FFBA08;
+}
+
+.card-icon .icon {
+    width: 64px;
+    height: 64px;
 }
 
 .support-card h2 {
