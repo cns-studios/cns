@@ -8,7 +8,7 @@ contactForm.addEventListener('submit', (e) => {
     const subject = document.getElementById('subject').value;
     const message = document.getElementById('message').value;
     
-    const recipient = 'contact@cnsstudios.dev';
+    const recipient = 'aaron.gerkens@proton.me';
     const emailSubject = `[${subject.toUpperCase()}] Message from ${name}`;
     const emailBody = `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`;
     

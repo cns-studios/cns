@@ -8,7 +8,7 @@ const { body, validationResult } = require('express-validator');
 const { initDatabase, userOps } = require('./database');
 
 const app = express();
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3000;
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-key-CHANGE-THIS';
 if (JWT_SECRET === 'default-secret-key-CHANGE-THIS') {
