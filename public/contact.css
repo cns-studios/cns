@@ -135,6 +135,12 @@ nav a:hover {
 .info-icon {
     font-size: 32px;
     margin-bottom: 15px;
+    color: #FFBA08;
+}
+
+.info-icon .icon {
+    width: 48px;
+    height: 48px;
 }
 
 .info-card h3 {

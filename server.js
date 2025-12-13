@@ -62,6 +62,7 @@ const validateLogin = [
 
 
 app.post('/api/auth/signup', validateSignup, async (req, res) => {
+    return res.status(503).json({ message: 'Signup is temporarily disabled.' });
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ 
@@ -96,6 +97,7 @@ app.post('/api/auth/signup', validateSignup, async (req, res) => {
 });
 
 app.post('/api/auth/login', validateLogin, async (req, res) => {
+    return res.status(503).json({ message: 'Login is temporarily disabled.' });
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ 

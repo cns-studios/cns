@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
 
 * {
     margin: 0;
@@ -7,11 +7,12 @@
 }
 
 body {
-    font-family: 'Press Start 2P', cursive;
+    font-family: 'VT323', monospace;
     background: linear-gradient(180deg, #03071E 0%, #370617 100%);
     color: #FFBA08;
     min-height: 100vh;
     image-rendering: pixelated;
+    font-size: 16px;
 }
 
 body::before {
@@ -39,6 +40,26 @@ header {
     top: 0;
     z-index: 100;
     box-shadow: 0 4px 0 #370617;
+}
+
+.logo,
+.section-title,
+.subsection-title,
+.sidebar-header h2,
+.tldr-item h3,
+.info-box h3,
+.warning-box h3,
+.issue-box h3,
+.changelog-entry h3,
+.http-method,
+.nav-item,
+nav a,
+.back-home,
+.footer-links a,
+.copyright,
+.tldr-item code,
+.code-block code {
+    font-family: 'Press Start 2P', cursive;
 }
 
 .logo {
@@ -220,6 +241,15 @@ nav a:hover {
     font-size: 11px;
     color: #FFBA08;
     margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.warning-box .icon {
+    width: 20px;
+    height: 20px;
+    fill: #FFBA08;
 }
 
 .info-box ul,
