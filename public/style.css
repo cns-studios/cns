@@ -6,6 +6,10 @@
     box-sizing: border-box;
 }
 
+*::selection {
+    background: #6A040F;
+}
+
 body {
     font-family: 'Press Start 2P', cursive;
     background: linear-gradient(180deg, #03071E 0%, #370617 100%);
