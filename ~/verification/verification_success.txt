@@ -1,0 +1,17 @@
+The authentication flow was successfully verified using `curl`.
+
+--- Test Case: Full Signup and Login Cycle ---
+
+1. A unique username and PIN were generated.
+2. A POST request was sent to /api/auth/signup.
+3. The server responded with a success message, confirming account creation.
+4. A POST request was sent to /api/auth/login using the same credentials.
+5. The server responded with a success message, confirming the login was successful.
+
+--- Signup Response ---
+{"message":"Account created successfully","username":"testuser_1766242234"}
+
+--- Login Response ---
+{"success":true,"message":"Login successful","username":"testuser_1766242234"}
+
+This confirms that the server-side logic for user creation and authentication is working as expected.

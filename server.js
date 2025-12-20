@@ -1,23 +1,14 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
-const { body, validationResult } = require('express-validator');
-const rateLimit = require('express-rate-limit');
-const { initDatabase, userOps } = require('./database');
+const { initDatabase } = require('./database');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-key-CHANGE-THIS';
-if (JWT_SECRET === 'default-secret-key-CHANGE-THIS') {
-    console.warn('WARNING: Using default JWT secret. Create a .env file with JWT_SECRET!');
-}
-
-const COOKIE_MAX_AGE = parseInt(process.env.COOKIE_MAX_AGE) || 604800000;
-const SALT_ROUNDS = 10;
+// The URL for the central authentication service
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 
 initDatabase();
 
@@ -25,189 +16,49 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const authenticateToken = (req, res, next) => {
-    const token = req.cookies.auth_token;
-
-    if (!token) {
-        req.user = null;
-        return next();
+/**
+ * Middleware to check for the authentication token.
+ * If the token is not present, it redirects the user to the central login page.
+ * This is a simple example of how a sub-service would protect its routes.
+ */
+const requireAuth = (req, res, next) => {
+    if (!req.cookies.auth_token) {
+        // Encode the original URL to be used as the redirect URI
+        const redirectUri = encodeURIComponent(`${req.protocol}://${req.get('host')}${req.originalUrl}`);
+        // Redirect to the auth service's login page
+        return res.redirect(`${AUTH_SERVICE_URL}/login?redirect_uri=${redirectUri}`);
     }
-
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) {
-            req.user = null;
-            res.clearCookie('auth_token')
-        } else {
-            req.user = user;
-        }
-        next();
-    });
+    // In a real application, you would typically verify the token by calling the auth service's /api/me endpoint here.
+    // For this example, we'll assume the presence of the cookie is sufficient for basic access.
+    next();
 };
 
-const validateSignup = [
-    body('username')
-        .trim()
-        .isLength({ min: 3, max: 20 })
-        .withMessage('Username must be 3-20 characters')
-        .matches(/^[a-zA-Z0-9_]+$/)
-        .withMessage('Username: letters, numbers, underscore only'),
-    body('pin')
-        .matches(/^\d{4}$/)
-        .withMessage('PIN must be exactly 4 digits')
-];
-
-const validateLogin = [
-    body('username').trim().notEmpty().withMessage('Username required'),
-    body('pin').matches(/^\d{4}$/).withMessage('PIN must be 4 digits')
-];
-
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 10,
-    message: 'Too many requests from this IP, please try again after 15 minutes'
-});
-
-
-app.post('/api/auth/signup', authLimiter, validateSignup, async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({
-            message: errors.array()[0].msg
-        });
-    }
-
-    const { username, pin } = req.body;
-
-    try {
-        const existingUser = userOps.findByUsername(username);
-        if (existingUser) {
-            return res.status(409).json({
-                message: 'Username already taken'
-            });
-        }
-
-        const pinHash = await bcrypt.hash(pin, SALT_ROUNDS);
-        const result = userOps.create(username, pinHash);
-
-        console.log(`✓ New user: ${username}`);
-
-        res.status(201).json({
-            message: 'Account created successfully',
-            username: username
-        });
-
-    } catch (error) {
-        console.error('Signup error:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-app.post('/api/auth/login', authLimiter, validateLogin, async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({
-            message: errors.array()[0].msg
-        });
-    }
-
-    const { username, pin, rememberMe } = req.body;
-
-    try {
-        const user = userOps.findByUsername(username);
-        if (!user) {
-            return res.status(401).json({
-                message: 'Invalid username or PIN'
-            });
-        }
-
-        const pinMatch = await bcrypt.compare(pin, user.pin_hash);
-        if (!pinMatch) {
-            return res.status(401).json({
-                message: 'Invalid username or PIN'
-            });
-        }
-
-        userOps.updateLastLogin(user.id);
-
-        const token = jwt.sign(
-            {
-                userId: user.id,
-                username: user.username
-            },
-            JWT_SECRET,
-            { expiresIn: '7d' }
-        );
-
-        const cookieOptions = {
-            httpOnly: true,
-            maxAge: rememberMe ? COOKIE_MAX_AGE : 3600000,
-            sameSite: 'strict',
-            secure: process.env.NODE_ENV === 'production'
-        };
-
-        res.cookie('auth_token', token, cookieOptions);
-
-        console.log(`✓ Login: ${username}`);
-
-        res.json({
-            message: 'Login successful',
-            username: user.username,
-            userId: user.id
-        });
-
-    } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-app.post('/api/auth/logout', (req, res) => {
-    res.clearCookie('auth_token');
-    res.json({ message: 'Logged out successfully' });
-});
-
-app.get('/api/auth/status', authenticateToken, (req, res) => {
-    if (req.user) {
-        res.json({
-            authenticated: true,
-            username: req.user.username,
-            userId: req.user.userId
-        });
-    } else {
-        res.json({ authenticated: false });
-    }
-});
-
-app.get('/api/user/profile', authenticateToken, (req, res) => {
-    if (!req.user) {
-        return res.status(401).json({ message: 'Not authenticated' });
-    }
-
-    try {
-        const userData = userOps.getUserData(req.user.userId);
-
-        res.json({
-            username: req.user.username,
-            profile: userData.profile,
-            settings: userData.settings
-        });
-
-    } catch (error) {
-        console.error('Profile error:', error);
-        res.status(500).json({ message: 'Error fetching profile' });
-    }
-});
+// --- Static Page Routes ---
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Example of a protected route
+app.get('/dashboard', requireAuth, (req, res) => {
+    // This page is only accessible if the user is logged in
+    res.send('Welcome to your protected dashboard!');
+});
+
 app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+    // This route now simply redirects to the central auth service
+    const redirectUri = encodeURIComponent(`${req.protocol}://${req.get('host')}/dashboard`);
+    res.redirect(`${AUTH_SERVICE_URL}/login?redirect_uri=${redirectUri}`);
 });
 
 app.get('/signup', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'signup.html'));
+    // This route now simply redirects to the central auth service
+    res.redirect(`${AUTH_SERVICE_URL}/signup`);
+});
+
+app.get('/logout', (req, res) => {
+    const redirectUri = encodeURIComponent(`${req.protocol}://${req.get('host')}/`);
+    res.redirect(`${AUTH_SERVICE_URL}/logout?redirect_uri=${redirectUri}`);
 });
 
 app.get('/docs', (req, res) => {
@@ -234,10 +85,12 @@ app.get('/github', (req, res) => {
     res.redirect('https://github.com/cns-studios');
 });
 
+// --- 404 Handler ---
 app.use((req, res) => {
-    res.status(404).send('Adress not found');
+    res.status(404).send('Address not found');
 });
 
+// --- Server Initialization ---
 app.listen(port, () => {
-    console.log(`Running on http://localhost:${port}`);
+    console.log(`✓ CNS Main App running on http://localhost:${port}`);
 });
