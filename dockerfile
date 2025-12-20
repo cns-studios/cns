@@ -13,7 +13,7 @@ RUN npm install
 COPY public/ ./public/
 COPY server.js .
 COPY database.js .
-
+COPY .env .
 
 # Expose the port the app runs on (e.g., 3000)
 EXPOSE 8080
