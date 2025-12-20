@@ -1,0 +1,9 @@
+# Node.js
+node_modules/
+npm-debug.log
+*.log
+
+# Verification files
+/verification/
+/verify_auth_flow.js
+/index.html

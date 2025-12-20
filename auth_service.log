@@ -1,0 +1,8 @@
+
+> cns-auth-service@1.0.0 start
+> node server.js
+
+✓ Auth users table ready
+✓ Auth database initialized
+✓ CNS Auth Service running on http://localhost:3001
+Terminated
