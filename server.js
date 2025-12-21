@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const http = require('http'); // Using the native http module
 const { initDatabase } = require('./database');
 
 const app = express();
@@ -16,22 +17,51 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-/**
- * Middleware to check for the authentication token.
- * If the token is not present, it redirects the user to the central login page.
- * This is a simple example of how a sub-service would protect its routes.
- */
-const requireAuth = (req, res, next) => {
-    if (!req.cookies.auth_token) {
-        // Encode the original URL to be used as the redirect URI
-        const redirectUri = encodeURIComponent(`${req.protocol}://${req.get('host')}${req.originalUrl}`);
-        // Redirect to the auth service's login page
-        return res.redirect(`${AUTH_SERVICE_URL}/login?redirect_uri=${redirectUri}`);
+// --- API Routes ---
+
+app.get('/api/config', (req, res) => {
+    res.json({ authServiceUrl: AUTH_SERVICE_URL });
+});
+
+app.get('/api/auth/status', (req, res) => {
+    const token = req.cookies.auth_token;
+
+    if (!token) {
+        return res.json({ authenticated: false });
     }
-    // In a real application, you would typically verify the token by calling the auth service's /api/me endpoint here.
-    // For this example, we'll assume the presence of the cookie is sufficient for basic access.
-    next();
-};
+
+    const options = {
+        hostname: new URL(AUTH_SERVICE_URL).hostname,
+        port: new URL(AUTH_SERVICE_URL).port,
+        path: '/api/me',
+        method: 'GET',
+        headers: {
+            'Cookie': `auth_token=${token}`
+        }
+    };
+
+    const authReq = http.request(options, (authRes) => {
+        let data = '';
+        authRes.on('data', (chunk) => {
+            data += chunk;
+        });
+        authRes.on('end', () => {
+            if (authRes.statusCode === 200) {
+                const userData = JSON.parse(data);
+                res.json({ authenticated: true, username: userData.username });
+            } else {
+                res.json({ authenticated: false });
+            }
+        });
+    });
+
+    authReq.on('error', (error) => {
+        console.error('Error calling auth service:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    });
+
+    authReq.end();
+});
 
 // --- Static Page Routes ---
 
@@ -39,27 +69,19 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Example of a protected route
-app.get('/dashboard', requireAuth, (req, res) => {
-    // This page is only accessible if the user is logged in
-    res.send('Welcome to your protected dashboard!');
+// Example of a protected route that now relies on the frontend to redirect
+app.get('/dashboard', (req, res) => {
+    // In this new setup, the frontend will handle the redirect if not authenticated.
+    // If the user gets here, we assume the frontend has already verified auth.
+    // A more robust solution might still have server-side protection.
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html')); // Assuming you have a dashboard file
 });
 
-app.get('/login', (req, res) => {
-    // This route now simply redirects to the central auth service
-    const redirectUri = encodeURIComponent(`${req.protocol}://${req.get('host')}/dashboard`);
-    res.redirect(`${AUTH_SERVICE_URL}/login?redirect_uri=${redirectUri}`);
-});
+// These routes are no longer needed as the frontend will direct to the auth service
+// app.get('/login', ...);
+// app.get('/signup', ...);
+// app.get('/logout', ...);
 
-app.get('/signup', (req, res) => {
-    // This route now simply redirects to the central auth service
-    res.redirect(`${AUTH_SERVICE_URL}/signup`);
-});
-
-app.get('/logout', (req, res) => {
-    const redirectUri = encodeURIComponent(`${req.protocol}://${req.get('host')}/`);
-    res.redirect(`${AUTH_SERVICE_URL}/logout?redirect_uri=${redirectUri}`);
-});
 
 app.get('/docs', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'docs.html'));
@@ -84,6 +106,7 @@ app.get('/support', (req, res) => {
 app.get('/github', (req, res) => {
     res.redirect('https://github.com/cns-studios');
 });
+
 
 // --- 404 Handler ---
 app.use((req, res) => {

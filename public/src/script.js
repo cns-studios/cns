@@ -1,4 +1,10 @@
+let authServiceUrl;
+
 async function checkAuthStatus() {
+    if (!authServiceUrl) {
+        console.error('Auth service URL is not set. Cannot check status.');
+        return;
+    }
     try {
         const response = await fetch('/api/auth/status');
         const data = await response.json();
@@ -7,27 +13,46 @@ async function checkAuthStatus() {
         
         if (data.authenticated) {
             loginBtn.textContent = data.username.toUpperCase();
-            loginBtn.style.cursor = 'default';
             
-            loginBtn.onclick = async () => {
+            loginBtn.onclick = () => {
                 if (confirm('LOGOUT?')) {
-                    await fetch('/api/auth/logout', { method: 'POST' });
-                    window.location.reload();
+                    const redirectUri = encodeURIComponent(window.location.origin);
+                    window.location.href = `${authServiceUrl}/logout?redirect_uri=${redirectUri}`;
                 }
             };
         } else {
             loginBtn.textContent = 'LOGIN';
             loginBtn.onclick = () => {
-                window.location.href = '/login';
+                const redirectUri = encodeURIComponent(window.location.origin);
+                window.location.href = `${authServiceUrl}/login?redirect_uri=${redirectUri}`;
             };
         }
     } catch (error) {
         console.error('Auth check failed:', error);
+        // Fallback for login button if the API fails
+        const loginBtn = document.getElementById('login-btn');
+        loginBtn.textContent = 'LOGIN';
+        loginBtn.onclick = () => {
+            const redirectUri = encodeURIComponent(window.location.origin);
+            window.location.href = `${authServiceUrl}/login?redirect_uri=${redirectUri}`;
+        };
     }
 }
 
-checkAuthStatus();
+async function initializeApp() {
+    try {
+        const response = await fetch('/api/config');
+        const config = await response.json();
+        authServiceUrl = config.authServiceUrl;
+        await checkAuthStatus();
+    } catch (error) {
+        console.error('Failed to initialize application configuration:', error);
+    }
+}
 
+initializeApp();
+
+// --- Draggable Card ---
 document.querySelectorAll('.card, .small-card').forEach(card => {
     let isDragging = false;
     let currentX;
@@ -80,6 +105,7 @@ document.querySelectorAll('.card, .small-card').forEach(card => {
     }
 });
 
+// --- Button Hover Effect ---
 document.querySelectorAll('button, a').forEach(element => {
     element.addEventListener('mouseenter', () => {
         element.style.filter = 'brightness(1.2)';
