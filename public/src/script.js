@@ -54,7 +54,13 @@ initializeApp();
 
 // --- Draggable Card ---
 document.querySelectorAll('.card, .small-card').forEach(card => {
+    const cardLink = card.closest('.card-link');
     let isDragging = false;
+    let hasDragged = false; // Flag to distinguish a click from a drag
+
+    let startX, startY; // Mouse position at the start of a drag
+
+    // The rest of the variables from the original code
     let currentX;
     let currentY;
     let initialX;
@@ -66,7 +72,23 @@ document.querySelectorAll('.card, .small-card').forEach(card => {
     document.addEventListener('mousemove', drag);
     document.addEventListener('mouseup', dragEnd);
 
+    if (cardLink) {
+        cardLink.addEventListener('click', function(e) {
+            if (hasDragged) {
+                e.preventDefault();
+            }
+        });
+    }
+
     function dragStart(e) {
+        // Reset hasDragged flag on every mousedown
+        hasDragged = false;
+
+        // Store initial mouse position
+        startX = e.clientX;
+        startY = e.clientY;
+
+        // Original logic for smooth dragging
         initialX = e.clientX - xOffset;
         initialY = e.clientY - yOffset;
         
@@ -78,7 +100,19 @@ document.querySelectorAll('.card, .small-card').forEach(card => {
 
     function drag(e) {
         if (isDragging) {
-            e.preventDefault();
+            // Check if the mouse has moved significantly to be considered a drag
+            if (!hasDragged) {
+                if (Math.abs(e.clientX - startX) > 5 || Math.abs(e.clientY - startY) > 5) {
+                    hasDragged = true;
+                }
+            }
+
+            // If it is a drag, prevent default to avoid text selection, etc.
+            if (hasDragged) {
+                e.preventDefault();
+            }
+
+            // Original positioning logic
             currentX = e.clientX - initialX;
             currentY = e.clientY - initialY;
             xOffset = currentX;
@@ -91,12 +125,15 @@ document.querySelectorAll('.card, .small-card').forEach(card => {
     function dragEnd() {
         if (isDragging) {
             card.classList.remove('dragging');
-            card.style.transition = 'transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
-            card.style.transform = 'translate(0, 0)';
-            
-            setTimeout(() => {
-                card.style.transition = '';
-            }, 500);
+            // Only play the snap-back animation if the card was actually dragged
+            if (hasDragged) {
+                card.style.transition = 'transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                card.style.transform = 'translate(0, 0)';
+
+                setTimeout(() => {
+                    card.style.transition = '';
+                }, 500);
+            }
             
             xOffset = 0;
             yOffset = 0;
