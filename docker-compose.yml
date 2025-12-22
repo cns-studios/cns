@@ -1,0 +1,13 @@
+services:
+  homepage:
+    build: .
+    
+    container_name: homepage
+    
+    ports:
+      - "8080:8080"
+      
+    restart: unless-stopped
+    
+    volumes:
+      - ./cns_users.db:/app/cns_users.db
