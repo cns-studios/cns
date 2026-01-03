@@ -137,6 +137,7 @@ nav a:hover {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 30px;
     margin-bottom: 60px;
+    align-items: stretch;
 }
 
 .card {
@@ -369,9 +370,15 @@ nav a:hover {
     text-decoration: none;
     color: inherit;
     display: block;
+    height: 100%;
     will-change: transform;
     transform: translateZ(0);
     backface-visibility: hidden;
+}
+
+.card-link>.card,
+.card-link>.small-card {
+    height: 100%;
 }
 
 footer {
