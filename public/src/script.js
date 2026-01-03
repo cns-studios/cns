@@ -8,34 +8,43 @@ async function checkAuthStatus() {
     try {
         const response = await fetch('/api/auth/status');
         const data = await response.json();
-        
+
         const loginBtn = document.getElementById('login-btn');
-        
-        if (data.authenticated) {
-            loginBtn.textContent = data.username.toUpperCase();
-            
-            loginBtn.onclick = () => {
-                if (confirm('LOGOUT?')) {
-                    const redirectUri = encodeURIComponent(window.location.origin);
-                    window.location.href = `${authServiceUrl}/logout?redirect_uri=${redirectUri}`;
-                }
-            };
+
+        if (!loginBtn) {
+            // It's normal for some pages to not have a login button (e.g., docs/contact pages)
+            console.warn('Login button not found on this page. Skipping auth UI update.');
         } else {
-            loginBtn.textContent = 'LOGIN';
-            loginBtn.onclick = () => {
-                const redirectUri = encodeURIComponent(window.location.origin);
-                window.location.href = `${authServiceUrl}/login?redirect_uri=${redirectUri}`;
-            };
+            if (data.authenticated) {
+                loginBtn.textContent = data.username.toUpperCase();
+
+                loginBtn.onclick = () => {
+                    if (confirm('LOGOUT?')) {
+                        const redirectUri = encodeURIComponent(window.location.origin);
+                        window.location.href = `${authServiceUrl}/logout?redirect_uri=${redirectUri}`;
+                    }
+                };
+            } else {
+                loginBtn.textContent = 'LOGIN';
+                loginBtn.onclick = () => {
+                    const redirectUri = encodeURIComponent(window.location.origin);
+                    window.location.href = `${authServiceUrl}/login?redirect_uri=${redirectUri}`;
+                };
+            }
         }
     } catch (error) {
         console.error('Auth check failed:', error);
         // Fallback for login button if the API fails
         const loginBtn = document.getElementById('login-btn');
-        loginBtn.textContent = 'LOGIN';
-        loginBtn.onclick = () => {
-            const redirectUri = encodeURIComponent(window.location.origin);
-            window.location.href = `${authServiceUrl}/login?redirect_uri=${redirectUri}`;
-        };
+        if (loginBtn) {
+            loginBtn.textContent = 'LOGIN';
+            loginBtn.onclick = () => {
+                const redirectUri = encodeURIComponent(window.location.origin);
+                window.location.href = `${authServiceUrl}/login?redirect_uri=${redirectUri}`;
+            };
+        } else {
+            console.warn('Auth check failed and no login button is available on this page.');
+        }
     }
 }
 
@@ -52,65 +61,72 @@ async function initializeApp() {
 
 initializeApp();
 
-// --- Draggable Card ---
-document.querySelectorAll('.card, .small-card').forEach(card => {
-    let isDragging = false;
-    let currentX;
-    let currentY;
-    let initialX;
-    let initialY;
-    let xOffset = 0;
-    let yOffset = 0;
+// --- Draggable Card Logic (refined for link-wrapped cards) ---
+(function () {
+    'use strict';
 
-    card.addEventListener('mousedown', dragStart);
-    document.addEventListener('mousemove', drag);
-    document.addEventListener('mouseup', dragEnd);
+    const cardLinks = document.querySelectorAll('.card-link');
+    const DRAG_THRESHOLD = 10; // Threshold to distinguish click from drag
 
-    function dragStart(e) {
-        initialX = e.clientX - xOffset;
-        initialY = e.clientY - yOffset;
-        
-        if (e.target === card || card.contains(e.target)) {
-            isDragging = true;
-            card.classList.add('dragging');
-        }
-    }
+    cardLinks.forEach(cardLink => {
+        let isMouseDown = false;
+        let isDragging = false;
+        let startX = 0, startY = 0;
 
-    function drag(e) {
-        if (isDragging) {
+        // Prevent browser's default link drag behavior
+        cardLink.addEventListener('dragstart', (e) => {
             e.preventDefault();
-            currentX = e.clientX - initialX;
-            currentY = e.clientY - initialY;
-            xOffset = currentX;
-            yOffset = currentY;
-            
-            card.style.transform = `translate(${currentX}px, ${currentY}px)`;
-        }
-    }
+        });
 
-    function dragEnd() {
-        if (isDragging) {
-            card.classList.remove('dragging');
-            card.style.transition = 'transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
-            card.style.transform = 'translate(0, 0)';
-            
-            setTimeout(() => {
-                card.style.transition = '';
-            }, 500);
-            
-            xOffset = 0;
-            yOffset = 0;
+        cardLink.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            e.preventDefault(); // Prevent text selection and default link behavior
+            isMouseDown = true;
             isDragging = false;
-        }
-    }
-});
+            startX = e.clientX;
+            startY = e.clientY;
+        });
 
-// --- Button Hover Effect ---
-document.querySelectorAll('button, a').forEach(element => {
-    element.addEventListener('mouseenter', () => {
-        element.style.filter = 'brightness(1.2)';
-        setTimeout(() => {
-            element.style.filter = '';
-        }, 100);
+        cardLink.addEventListener('mousemove', (e) => {
+            // Only process drag if mouse button is held down
+            if (!isMouseDown) return;
+
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+
+            if (Math.abs(deltaX) > DRAG_THRESHOLD || Math.abs(deltaY) > DRAG_THRESHOLD) {
+                isDragging = true;
+                cardLink.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+            }
+        });
+
+        cardLink.addEventListener('mouseup', () => {
+            isMouseDown = false;
+            if (isDragging) {
+                cardLink.style.transform = '';
+                // Delay resetting isDragging so click handler can check it
+                requestAnimationFrame(() => {
+                    isDragging = false;
+                });
+            }
+        });
+
+        // Handle case where mouse leaves the element while dragging
+        cardLink.addEventListener('mouseleave', () => {
+            if (isMouseDown) {
+                isMouseDown = false;
+                cardLink.style.transform = '';
+                isDragging = false;
+            }
+        });
+
+        // Prevent link navigation when dragging
+        cardLink.addEventListener('click', (e) => {
+            if (isDragging) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
     });
-});
+})();
+
