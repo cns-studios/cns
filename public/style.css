@@ -35,7 +35,7 @@ body::before {
     z-index: 1;
 }
 
-/* Removed body::after with backdrop-filter blur - was causing major performance issues */
+
 
 header {
     display: flex;
@@ -96,9 +96,9 @@ nav a:hover {
     border: 2px solid #F48C06;
     background: rgba(244, 140, 6, 0.2);
     transform: scale(1.02);
-    /* Reduced scale to avoid layout shift */
+
     box-shadow: 0 2px 0 #9D0208;
-    /* Reduced shadow intensity */
+
 }
 
 .login-btn {
@@ -165,10 +165,10 @@ nav a:hover {
 
 .card:hover {
     box-shadow: 8px 8px 0 rgba(157, 2, 8, 0.5);
-    /* Reduced shadow intensity */
+
     border-color: #FFBA08;
     background: linear-gradient(135deg, #9D0208 10%, #6A040F 90%);
-    /* Adjusted gradient for better visibility */
+
 }
 
 .card-image {

@@ -1,137 +1,78 @@
-require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
-const http = require('http'); // Using the native http module
 const compression = require('compression');
 const expressStaticGzip = require('express-static-gzip');
+require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'https://auth.cns-studios.com';
 
-// The URL for the central authentication service
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
+app.set('trust proxy', 1);
 
-
+app.use(compression());
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
-// Enable Gzip compression
-app.use(compression());
-
-// Serve static files with caching headers
-app.use('/public', expressStaticGzip(path.join(__dirname, 'public'), {
+app.use('/', expressStaticGzip(path.join(__dirname, 'public'), {
     enableBrotli: true,
     orderPreference: ['br', 'gz'],
     setHeaders: (res, path) => {
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
+        if (path.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache');
+        } else {
+            res.setHeader('Cache-Control', 'public, max-age=31536000');
+        }
     }
 }));
 
-// --- API Routes ---
+app.get('/health', (req, res) => {
+    res.json({ status: 'up' });
+});
 
 app.get('/api/config', (req, res) => {
     res.json({ authServiceUrl: AUTH_SERVICE_URL });
 });
 
-app.get('/api/auth/status', (req, res) => {
-    const token = req.cookies.auth_token;
-
-    if (!token) {
-        return res.json({ authenticated: false });
-    }
-
+app.get('/api/auth/status', async (req, res) => {
     try {
-        const authUrl = new URL(AUTH_SERVICE_URL);
-        const isHttps = authUrl.protocol === 'https:';
-        const client = isHttps ? require('https') : require('http');
-        const options = {
-            hostname: authUrl.hostname,
-            port: authUrl.port || (isHttps ? 443 : 80),
-            path: '/api/me',
-            method: 'GET',
+        const response = await fetch(`${AUTH_SERVICE_URL}/api/status`, {
             headers: {
-                'Cookie': `auth_token=${token}`,
-                'Accept': 'application/json'
-            },
-            timeout: 5000
-        };
-
-        const authReq = client.request(options, (authRes) => {
-            let data = '';
-            authRes.on('data', (chunk) => {
-                data += chunk;
-            });
-            authRes.on('end', () => {
-                try {
-                    if (authRes.statusCode === 200) {
-                        const userData = JSON.parse(data || '{}');
-                        res.json({ authenticated: true, username: userData.username });
-                    } else {
-                        res.json({ authenticated: false });
-                    }
-                } catch (err) {
-                    console.error('Error parsing auth response:', err);
-                    res.status(502).json({ error: 'Invalid response from auth service' });
-                }
-            });
+                Cookie: req.headers.cookie || ''
+            }
         });
-
-        authReq.on('timeout', () => {
-            authReq.destroy();
-            res.status(504).json({ error: 'Auth service timeout' });
-        });
-
-        authReq.on('error', (error) => {
-            console.error('Error calling auth service:', error);
-            res.status(502).json({ error: 'Bad gateway' });
-        });
-
-        authReq.end();
-    } catch (err) {
-        console.error('Invalid AUTH_SERVICE_URL:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ authenticated: false, error: 'Auth service unreachable' });
     }
 });
 
-// --- Static Page Routes ---
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+app.get('/login', (req, res) => {
+    res.redirect(`${AUTH_SERVICE_URL}/login?redirect_uri=${encodeURIComponent(req.protocol + '://' + req.get('host'))}`);
 });
 
-app.get('/docs', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'docs.html'));
+app.get('/signup', (req, res) => {
+    res.redirect(`${AUTH_SERVICE_URL}/signup?redirect_uri=${encodeURIComponent(req.protocol + '://' + req.get('host'))}`);
 });
 
-app.get('/contact', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'contact.html'));
-});
-
-app.get('/policy', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'policy.html'));
-});
-
-app.get('/tos', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'tos.html'));
-});
-
-app.get('/support', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'support.html'));
+app.get('/logout', (req, res) => {
+    res.redirect(`${AUTH_SERVICE_URL}/logout?redirect_uri=${encodeURIComponent(req.protocol + '://' + req.get('host'))}`);
 });
 
 app.get('/github', (req, res) => {
     res.redirect('https://github.com/cns-studios');
 });
 
-
-// --- 404 Handler ---
-app.use((req, res) => {
-    res.status(404).send('Address not found');
+app.get('/docs', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/docs.html'));
 });
 
-// --- Server Initialization ---
+app.use((req, res) => {
+    res.status(404).sendFile(path.join(__dirname, 'public/404.html'));
+});
+
 app.listen(port, () => {
-    console.log(`✓ CNS Main App running on http://localhost:${port}`);
+    console.log(`✓ CNS Main App running on port ${port}`);
 });

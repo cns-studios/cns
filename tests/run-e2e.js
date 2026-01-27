@@ -24,26 +24,26 @@ function waitForServer(url, timeout = 5000) {
   server.stderr.on('data', (d) => process.stderr.write(`[server:err] ${d.toString()}`));
 
   try {
-    await waitForServer('http://localhost:3000/', 8000);
+    await waitForServer('http:
     console.log('Server is up, launching browser...');
 
     const browser = await chromium.launch({ headless: true });
     const page = await browser.newPage();
 
-    // Check home page
-    await page.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
+
+    await page.goto('http:
     const title = await page.title();
     if (!/CNS Studios/i.test(title)) throw new Error('Home title mismatch');
     const loginExists = await page.$('#login-btn');
     if (!loginExists) throw new Error('Login button missing on home page');
 
-    // Check docs page
-    await page.goto('http://localhost:3000/docs', { waitUntil: 'domcontentloaded' });
+
+    await page.goto('http:
     const docsNav = await page.$('.docs-nav');
     if (!docsNav) throw new Error('Docs navigation missing');
 
-    // Check contact page
-    await page.goto('http://localhost:3000/contact', { waitUntil: 'domcontentloaded' });
+
+    await page.goto('http:
     const contactForm = await page.$('#contactForm');
     if (!contactForm) throw new Error('Contact form missing');
 
