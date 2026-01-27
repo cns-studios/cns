@@ -30,7 +30,6 @@
                 <a href="#installation" class="nav-item">Installation</a>
                 <a href="#authentication" class="nav-item">Authentication</a>
                 <a href="#api-reference" class="nav-item">API Reference</a>
-                <a href="#database" class="nav-item">Database</a>
                 <a href="#deployment" class="nav-item">Deployment</a>
                 <a href="#examples" class="nav-item">Examples</a>
                 <a href="#troubleshooting" class="nav-item">Troubleshooting</a>
@@ -116,17 +115,14 @@ cd project</code></pre>
                 <p class="doc-text">This will install all required dependencies including:</p>
                 <ul>
                     <li>Express.js - Web framework</li>
-                    <li>Better-SQLite3 - Database engine</li>
-                    <li>bcrypt - Password hashing</li>
-                    <li>jsonwebtoken - Authentication tokens</li>
+                    <li>Axios - HTTP client for Auth Service</li>
                 </ul>
 
                 <h2 class="subsection-title">STEP 3: ENVIRONMENT SETUP</h2>
                 <div class="code-block">
                     <pre><code># Create .env file
 PORT=3000
-JWT_SECRET=your-secret-key-here
-COOKIE_MAX_AGE=604800000
+AUTH_SERVICE_URL=https://auth.cns-studios.com
 NODE_ENV=development</code></pre>
                 </div>
             </section>
@@ -134,37 +130,13 @@ NODE_ENV=development</code></pre>
             <section id="authentication" class="doc-section">
                 <h1 class="section-title">AUTHENTICATION</h1>
                 <p class="doc-text">
-                    CNS Studios uses cookie-based JWT authentication with 4-digit PIN security.
+                    CNS Studios uses a centralized Authentication Service. Users are redirected to the Auth Service for login and signup.
                 </p>
 
-                <h2 class="subsection-title">SIGNUP ENDPOINT</h2>
-                <div class="code-block">
-                    <pre><code>POST /api/auth/signup
-Content-Type: application/json
-
-{
-  "username": "player1",
-  "pin": "1234"
-}</code></pre>
-                </div>
-
-                <h2 class="subsection-title">LOGIN ENDPOINT</h2>
-                <div class="code-block">
-                    <pre><code>POST /api/auth/login
-Content-Type: application/json
-
-{
-  "username": "player1",
-  "pin": "1234",
-  "rememberMe": true
-}</code></pre>
-                </div>
-
-                <div class="info-box">
-                    <h3>COOKIE DURATION</h3>
-                    <p>rememberMe: true = 7 days<br>
-                    rememberMe: false = 1 hour</p>
-                </div>
+                <h2 class="subsection-title">SSO REDIRECT</h2>
+                <p class="doc-text">
+                    When a user clicks "LOGIN", they are redirected to the configured Auth Service URL. After successful authentication, a secure session cookie is set on the shared domain.
+                </p>
             </section>
 
             <section id="api-reference" class="doc-section">
@@ -172,44 +144,18 @@ Content-Type: application/json
                 
                 <div class="api-endpoint">
                     <div class="endpoint-header">
-                        <span class="http-method post">POST</span>
-                        <span class="endpoint-path">/api/auth/signup</span>
+                        <span class="http-method get">GET</span>
+                        <span class="endpoint-path">/api/auth/status</span>
                     </div>
-                    <p class="doc-text">Create a new user account</p>
+                    <p class="doc-text">Check authentication status via Auth Service proxy</p>
                     <div class="code-block">
-                        <pre><code>// Request
+                        <pre><code>
 {
-  "username": "string (3-20 chars)",
-  "pin": "string (4 digits)"
-}
-
-// Response (201)
-{
-  "message": "Account created successfully",
-  "username": "player1"
-}</code></pre>
-                    </div>
-                </div>
-
-                <div class="api-endpoint">
-                    <div class="endpoint-header">
-                        <span class="http-method post">POST</span>
-                        <span class="endpoint-path">/api/auth/login</span>
-                    </div>
-                    <p class="doc-text">Authenticate user and receive cookie</p>
-                    <div class="code-block">
-                        <pre><code>// Request
-{
-  "username": "string",
-  "pin": "string (4 digits)",
-  "rememberMe": "boolean"
-}
-
-// Response (200)
-{
-  "message": "Login successful",
-  "username": "player1",
-  "userId": 1
+  "authenticated": true,
+  "user": {
+    "username": "player1",
+    "id": "uuid-here"
+  }
 }</code></pre>
                     </div>
                 </div>
@@ -217,69 +163,15 @@ Content-Type: application/json
                 <div class="api-endpoint">
                     <div class="endpoint-header">
                         <span class="http-method get">GET</span>
-                        <span class="endpoint-path">/api/auth/status</span>
+                        <span class="endpoint-path">/health</span>
                     </div>
-                    <p class="doc-text">Check authentication status</p>
+                    <p class="doc-text">Service health check for Coolify</p>
                     <div class="code-block">
-                        <pre><code>// Response (200)
+                        <pre><code>
 {
-  "authenticated": true,
-  "username": "player1",
-  "userId": 1
+  "status": "up"
 }</code></pre>
                     </div>
-                </div>
-
-                <div class="api-endpoint">
-                    <div class="endpoint-header">
-                        <span class="http-method post">POST</span>
-                        <span class="endpoint-path">/api/auth/logout</span>
-                    </div>
-                    <p class="doc-text">Clear authentication cookie</p>
-                </div>
-            </section>
-
-            <section id="database" class="doc-section">
-                <h1 class="section-title">DATABASE</h1>
-                <p class="doc-text">
-                    CNS Studios uses SQLite3 with a JSON column for flexible user data storage.
-                </p>
-
-                <h2 class="subsection-title">USER TABLE SCHEMA</h2>
-                <div class="code-block">
-                    <pre><code>CREATE TABLE users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT UNIQUE NOT NULL,
-  pin_hash TEXT NOT NULL,
-  user_data TEXT DEFAULT '{}',
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  last_login DATETIME,
-  is_active INTEGER DEFAULT 1
-);</code></pre>
-                </div>
-
-                <h2 class="subsection-title">USER DATA JSON STRUCTURE</h2>
-                <div class="code-block">
-                    <pre><code>{
-  "profile": {
-    "displayName": "Player Name",
-    "avatar": null,
-    "level": 1,
-    "joinDate": "2024-01-01T00:00:00.000Z"
-  },
-  "projects": {
-    "favorites": [],
-    "accessed": []
-  },
-  "settings": {
-    "theme": "retro-dark",
-    "notifications": true
-  },
-  "activity": {
-    "lastActive": "2024-01-01T00:00:00.000Z",
-    "totalLogins": 0
-  }
-}</code></pre>
                 </div>
             </section>
 
@@ -289,20 +181,18 @@ Content-Type: application/json
                 <h2 class="subsection-title">PRODUCTION CHECKLIST</h2>
                 <div class="warning-box">
                     <ul>
-                        <li>✓ Change JWT_SECRET to random string</li>
+                        <li>✓ Set AUTH_SERVICE_URL</li>
                         <li>✓ Set NODE_ENV=production</li>
                         <li>✓ Enable HTTPS for secure cookies</li>
-                        <li>✓ Configure proper CORS settings</li>
-                        <li>✓ Set up database backups</li>
-                        <li>✓ Configure rate limiting</li>
+                        <li>✓ Configure proper Coolify domain</li>
+                        <li>✓ Verify Docker health checks</li>
                     </ul>
                 </div>
 
                 <h2 class="subsection-title">ENVIRONMENT VARIABLES</h2>
                 <div class="code-block">
                     <pre><code>PORT=3000
-JWT_SECRET=RANDOM_64_CHAR_STRING
-COOKIE_MAX_AGE=604800000
+AUTH_SERVICE_URL=https://auth.cns-studios.com
 NODE_ENV=production</code></pre>
                 </div>
             </section>
@@ -310,26 +200,6 @@ NODE_ENV=production</code></pre>
             <section id="examples" class="doc-section">
                 <h1 class="section-title">EXAMPLES</h1>
                 
-                <h2 class="subsection-title">CLIENT-SIDE LOGIN</h2>
-                <div class="code-block">
-                    <pre><code>async function login(username, pin) {
-  const response = await fetch('/api/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, pin, rememberMe: true })
-  });
-  
-  const data = await response.json();
-  
-  if (response.ok) {
-    console.log('Logged in:', data.username);
-    window.location.href = '/';
-  } else {
-    console.error('Login failed:', data.message);
-  }
-}</code></pre>
-                </div>
-
                 <h2 class="subsection-title">CHECK AUTH STATUS</h2>
                 <div class="code-block">
                     <pre><code>async function checkAuth() {
@@ -337,7 +207,7 @@ NODE_ENV=production</code></pre>
   const data = await response.json();
   
   if (data.authenticated) {
-    console.log('User:', data.username);
+    console.log('User:', data.user.username);
   } else {
     console.log('Not authenticated');
   }
@@ -349,23 +219,18 @@ NODE_ENV=production</code></pre>
                 <h1 class="section-title">TROUBLESHOOTING</h1>
                 
                 <div class="issue-box">
-                    <h3>ERROR: secretOrPrivateKey must have a value</h3>
-                    <p><strong>Solution:</strong> Create .env file with JWT_SECRET variable</p>
+                    <h3>ERROR: AUTH_SERVICE_URL not defined</h3>
+                    <p><strong>Solution:</strong> Create .env file with AUTH_SERVICE_URL variable</p>
                 </div>
 
                 <div class="issue-box">
-                    <h3>ERROR: Cannot GET /login</h3>
-                    <p><strong>Solution:</strong> Ensure login.html exists in public/ directory</p>
-                </div>
-
-                <div class="issue-box">
-                    <h3>ERROR: Module not found</h3>
-                    <p><strong>Solution:</strong> Run npm install to install dependencies</p>
+                    <h3>Service Unhealthy in Coolify</h3>
+                    <p><strong>Solution:</strong> Check logs and ensure the /health endpoint is reachable</p>
                 </div>
 
                 <div class="issue-box">
                     <h3>Cookies not persisting</h3>
-                    <p><strong>Solution:</strong> Check that you're using http://localhost, not file://</p>
+                    <p><strong>Solution:</strong> Ensure COOKIE_DOMAIN matches the shared parent domain</p>
                 </div>
             </section>
 
@@ -373,21 +238,22 @@ NODE_ENV=production</code></pre>
                 <h1 class="section-title">CHANGELOG</h1>
                 
                 <div class="changelog-entry">
+                    <h3>v2.0.0 - 2025-05-20</h3>
+                    <ul>
+                        <li>✓ Migrated to Coolify</li>
+                        <li>✓ Switched to External Auth Service SSO</li>
+                        <li>✓ Removed internal SQLite database</li>
+                        <li>✓ Added health checks</li>
+                        <li>✓ Cleaned up code comments</li>
+                    </ul>
+                </div>
+
+                <div class="changelog-entry">
                     <h3>v1.0.0 - 2024-01-15</h3>
                     <ul>
                         <li>✓ Initial release</li>
                         <li>✓ Cookie-based authentication</li>
                         <li>✓ SQLite database integration</li>
-                        <li>✓ User data JSON storage</li>
-                    </ul>
-                </div>
-
-                <div class="changelog-entry">
-                    <h3>v0.9.0 - 2024-01-10</h3>
-                    <ul>
-                        <li>✓ Beta release</li>
-                        <li>✓ Core authentication system</li>
-                        <li>✓ Basic API endpoints</li>
                     </ul>
                 </div>
             </section>
