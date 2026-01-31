@@ -3,7 +3,7 @@ services:
     build: .
     container_name: homepage
     ports:
-      - "8080:3000"
+      - "8800:3000"
     restart: unless-stopped
     labels:
       - traefik.http.routers.http-0-dc4gkcso0cgs0g4owgo4okgg-portfolio.middlewares=error-pages-middleware@file
