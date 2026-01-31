@@ -9,3 +9,5 @@ services:
       - PORT=3000
       - NODE_ENV=production
       - AUTH_SERVICE_URL=https://auth.cns-studios.com
+    labels:
+      - traefik.http.routers.http-0-dc4gkcso0cgs0g4owgo4okgg-portfolio.middlewares=error-pages-middleware@file

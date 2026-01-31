@@ -15,6 +15,13 @@ app.use(compression());
 app.use(express.json());
 app.use(cookieParser());
 
+app.use((req, res, next) => {
+  if (process.env.MAINTENANCE_MODE === 'true') {
+    return res.status(503).send('Maintenance');
+  }
+  next();
+});
+
 app.use('/', expressStaticGzip(path.join(__dirname, 'public'), {
     enableBrotli: true,
     orderPreference: ['br', 'gz'],
